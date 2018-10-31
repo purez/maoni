@@ -1,0 +1,6 @@
+前端：HTML5+CSS3+JS
+
+后台：javawen项目springboot框架，
+	代码结构：entity-实体类
+		  mapper-数据库接口注释类
+		  controller-接口实现类
