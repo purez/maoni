@@ -1,5 +1,12 @@
 package com.application.catny.controller;
 
+import java.sql.Date;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import com.application.catny.entity.Post;
 import com.application.catny.entity.Reply;
 import com.application.catny.mapper.ReplyMapper;
@@ -7,59 +14,79 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
-import net.minidev.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.List;
-
-@Controller
+@RestController
 public class ReplyController {
     @Autowired
-    private ReplyMapper postMapper;
-    @RequestMapping("/post")
-    @ResponseBody
+    private ReplyMapper replyMapper;
+    
+    @RequestMapping("/reply")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "当前页码",
                     dataType = "Integer", paramType = "query"),
             @ApiImplicitParam(name = "size", value = "每页显示条数",
                     dataType = "Integer", paramType = "query")
     })
-    JSONObject getpostcontent(@RequestParam("id") String idstr,@RequestParam(defaultValue = "0") Integer page,
+    public PageInfo<Reply> getpostcontent(@RequestParam("id") String idstr,@RequestParam(defaultValue = "0") Integer page,
                               @RequestParam(value = "10",defaultValue = "0") Integer size,Model model) {
-        JSONObject jsonObject = new JSONObject();
         int id = Integer.parseInt(idstr);
-        Post post = postMapper.getPost(id);
-        List<Reply> list = postMapper.getReply(id);
-        PageHelper.startPage(page,size);
+        List<Reply> list = replyMapper.getReplyList(id);
+        PageHelper.startPage(page,size); 
         PageInfo<Reply> replyPageInfo = new PageInfo<>(list);
-        jsonObject.put("post",post);
-        jsonObject.put("reply",replyPageInfo);
-        return jsonObject;
+        return replyPageInfo;
     }
-
-    @RequestMapping("/createre")
-    @ResponseBody
-    boolean createreply(@RequestParam("postid") String post,@RequestParam("authorid") String author,
-                        @RequestParam("content") String content,@RequestParam("reference") String reference,Model model){
-        int postid = Integer.parseInt(post);
-        int authorid = Integer.parseInt(author);
+    
+    @RequestMapping("/getPost")
+    public Post getPost(int id) {
+    	Post post = replyMapper.getPost(id);
+    	return post;//实体类
+    }
+    
+    @RequestMapping("getSubReplyList")//二级回复
+    public List<Reply> getSubReplyList(@RequestParam("parentId") Integer parentId){
+    	return replyMapper.getSubReplyList(parentId);
+    }
+    
+    @RequestMapping("/createReply")
+    public String createReply(@RequestParam("postId") String post,@RequestParam("authorId") String author,
+                        @RequestParam("content") String content,@RequestParam("time")String timestr,
+                        @RequestParam("parentId") String beingRepliedId,Model model){
+        int postId = Integer.parseInt(post);
+        int authorId = Integer.parseInt(author);
+        
+        Date time = Date.valueOf(timestr);
         Reply reply = new Reply();
-        reply.setPostid(postid);
-        reply.setAuthorId(authorid);
+        reply.setPostId(postId);
+        reply.setAuthorId(authorId);
         reply.setContent(content);
-        reply.setReference(reference);
-        int i = postMapper.createreply(reply);
-        if(i>0){
-            model.addAttribute("success","发布成功");
-            return true;
-        }else {
-            model.addAttribute("fail","错误");
-            return false;
+        reply.setTime(time);
+        reply.setMaskName(distributeMaskName(postId, authorId));
+        if(!beingRepliedId.equals("0")) {//子回复
+        	int parentId = Integer.parseInt(beingRepliedId);
+        	reply.setParentId(parentId);
+        	String ref = replyMapper.getMaskName(parentId);
+        	reply.setReference(ref);
         }
+        int i = replyMapper.createReply(reply);
+        if(i>0){
+           return "回复成功";
+        }else {
+            return "错误"; 
+        }
+    }
+    
+    private String distributeMaskName(int postId,int authorId) {
+    	String maskName;
+    	if(replyMapper.getAuthorIdFromPost(postId) == authorId) {//楼主
+    		maskName = "匿名用户0";
+    	}else {
+    		if(replyMapper.getAuthorIdFromReply(postId) == authorId) {//已发言并分配
+    			maskName = replyMapper.getMaskNameFromReply(postId,authorId);
+    		}else {
+    			int n = replyMapper.countReplier(postId) + 1;
+    			maskName = "匿名用户" + Integer.toString(n);
+      		}
+    	}  	
+    	return maskName;
     }
 }

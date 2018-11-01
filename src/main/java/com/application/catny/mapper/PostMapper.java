@@ -15,7 +15,7 @@ public interface PostMapper {
             " GROUP BY post.id ORDER BY lasttime DESC")
     List<Post> getAllPost(@Param("belongid") int belongid);
 
-    @Insert("insert into post(title,content,authorid,time) values(#{title},#{content},#{authorid},#{time})")
+    @Insert("insert into post(title,content,authorid,time,belongid) values(#{title},#{content},#{authorid},#{time},#{belongid})")
     @Options(useGeneratedKeys = true,keyProperty = "id",keyColumn = "id")
     int createPost(Post post);
 }

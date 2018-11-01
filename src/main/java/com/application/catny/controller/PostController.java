@@ -18,7 +18,8 @@ public class PostController {
     @Autowired
     private PostMapper homeMapper;
 
-    @RequestMapping("/home.do")
+    //获取分页帖子列表，帖子按最新回复从上到下排序
+    @RequestMapping("/postlist")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "当前页码",
                     dataType = "Integer", paramType = "query"),
@@ -34,13 +35,15 @@ public class PostController {
         return postPageInfo;
     }
 
+    //获取分区
     @RequestMapping("/home")
      public List<Partition> Home(){
         List<Partition> partitions = homeMapper.getPartitions();
         return partitions;
     }
 
-    @RequestMapping(value = "/create",method = RequestMethod.POST)
+    //发帖
+    @RequestMapping(value = "/createPost",method = RequestMethod.POST)
     public String postsuc(@RequestParam("title") String title, @RequestParam("content") String content, @RequestParam("time")
                    String timestr,@RequestParam("authorid") String author,@RequestParam("belongid") String belong){
         Post post = new Post();

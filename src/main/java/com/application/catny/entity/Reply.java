@@ -1,21 +1,25 @@
 package com.application.catny.entity;
 
+import java.sql.Date;
 
 public class Reply {
-    private int postid;
+    private int postId;
     private int id;
-    private int authorid;
+    private int authorId;
     private String content;
+    private Date time;
     private String likes;
     private String dislikes;
     private String reference;
+    private int parentId;
+    private String maskName;//为用户随机分配的id名
 
-    public int getPostid() {
-        return postid;
+    public int getPostId() {
+        return postId;
     }
 
-    public void setPostid(int postid) {
-        this.postid = postid;
+    public void setPostId(int postId) {
+        this.postId = postId;
     }
 
     public int getId() {
@@ -27,11 +31,11 @@ public class Reply {
     }
 
     public int getAuthorId() {
-        return authorid;
+        return authorId;
     }
 
-    public void setAuthorId(int authorid) {
-        this.authorid = authorid;
+    public void setAuthorId(int authorId) {
+        this.authorId = authorId;
     }
 
     public String getContent() {
@@ -42,6 +46,13 @@ public class Reply {
         this.content = content;
     }
 
+    public Date getTime() {
+    	return time;
+    }
+    
+    public void setTime(Date time) {
+    	this.time = time;
+    }
     public String getLikes() {
         return likes;
     }
@@ -63,6 +74,22 @@ public class Reply {
     }
 
     public void setReference(String reference) {
-        this.reference = reference;
+        this.reference = "@" + reference;
+    }
+    
+    public int getParentId() {
+    	return parentId;
+    }
+    
+    public void setParentId(int parentId) {
+    	this.parentId = parentId;
+    }
+    
+    public String getMaskName() {
+    	return maskName;
+    }
+    
+    public void setMaskName(String maskName) {
+    	this.maskName = maskName;
     }
 }
